@@ -1,14 +1,18 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
+import { createStackNavigator, createBottomTabNavigator, createAppContainer  } from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
-import LinksScreen from '../screens/LinksScreen';
-import SettingsScreen from '../screens/SettingsScreen';
+import EventScreen from '../screens/EventScreen';
+import PlayingScreen from '../screens/PlayingScreen';
+import AchievementsScreen from '../screens/Achievements';
+import PreviousEventsScreen from '../screens/PreviousEvents';
+import UpcomingEventsScreen from '../screens/UpcomingEvents';
+import CreateEventScreen from '../screens/CreateEventScreen';
 
 const config = Platform.select({
-  web: { headerMode: 'screen' },
+  web: { headerMode: 'none', header: null },
   default: {},
 });
 
@@ -20,59 +24,76 @@ const HomeStack = createStackNavigator(
 );
 
 HomeStack.navigationOptions = {
-  tabBarLabel: 'Home',
+  tabBarLabel: 'Profile',
+  tabBarOptions: {
+    activeTintColor: '#e7741b',
+    inactiveTintColor: '#ccc',
+  },
   tabBarIcon: ({ focused }) => (
-    <TabBarIcon
-      focused={focused}
-      name={
-        Platform.OS === 'ios'
-          ? `ios-information-circle${focused ? '' : '-outline'}`
-          : 'md-information-circle'
-      }
-    />
+    <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-contact' : 'md-contact'} />
   ),
 };
 
 HomeStack.path = '';
 
-const LinksStack = createStackNavigator(
+const EventsStack = createStackNavigator(
   {
-    Links: LinksScreen,
+    Events: EventScreen,
   },
   config
 );
 
-LinksStack.navigationOptions = {
-  tabBarLabel: 'Links',
+EventsStack.navigationOptions = {
+  tabBarLabel: 'New events',
+  tabBarOptions: {
+    activeTintColor: '#e7741b',
+    inactiveTintColor: '#ccc',
+  },
   tabBarIcon: ({ focused }) => (
-    <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-link' : 'md-link'} />
+    <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-calendar' : 'md-calendar'} />
   ),
 };
 
-LinksStack.path = '';
+EventsStack.path = '';
 
-const SettingsStack = createStackNavigator(
+const PlayingStack = createStackNavigator(
   {
-    Settings: SettingsScreen,
+    Playing: PlayingScreen,
   },
   config
 );
 
-SettingsStack.navigationOptions = {
-  tabBarLabel: 'Settings',
+PlayingStack.navigationOptions = {
+  tabBarLabel: 'Playing',
+  tabBarOptions: {
+    activeTintColor: '#e7741b',
+    inactiveTintColor: '#ccc',
+  },
   tabBarIcon: ({ focused }) => (
-    <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'} />
+    <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-play' : 'md-play'} />
   ),
 };
 
-SettingsStack.path = '';
+PlayingStack.path = '';
 
 const tabNavigator = createBottomTabNavigator({
   HomeStack,
-  LinksStack,
-  SettingsStack,
+  EventsStack,
+  PlayingStack,
 });
 
 tabNavigator.path = '';
 
-export default tabNavigator;
+//add new screens here, this is the main app navigation stack (excluding authentication)
+const appNavigatior = createStackNavigator({
+  App: { screen: tabNavigator, navigationOptions: {header: null}},
+  Achievements: AchievementsScreen,
+  PreviousEvents: PreviousEventsScreen,
+  UpcomingEvents: UpcomingEventsScreen,
+  CreateEvent: CreateEventScreen,
+},
+{
+    initialRouteName: 'App',
+})
+
+export default appNavigatior;

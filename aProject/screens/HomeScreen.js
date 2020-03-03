@@ -6,193 +6,152 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
+  Button,
 } from 'react-native';
+import { connect } from 'react-redux';
+import Firebase from '../config/Firebase';
 
-import { MonoText } from '../components/StyledText';
+class HomeScreen extends React.Component {
 
-export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}>
-        <View style={styles.welcomeContainer}>
-          <Image
-            source={
-              __DEV__
-                ? require('../assets/images/robot-dev.png')
-                : require('../assets/images/robot-prod.png')
-            }
-            style={styles.welcomeImage}
-          />
-        </View>
+  handleSignout = () => {
+    Firebase.auth().signOut()
+    this.props.navigation.navigate('Login')
+  }
 
-        <View style={styles.getStartedContainer}>
-          <DevelopmentModeNotice />
+  handleAchievements = () => {
+    console.log("Achievements");
+    this.props.navigation.navigate('Achievements')
+  }
+  
+  handlePreviousEvents = () => {
+    console.log("Previous events");
+    this.props.navigation.navigate('PreviousEvents')
+  }
 
-          <Text style={styles.getStartedText}>Get started by opening</Text>
+  handleUpcomingEvents = () => {
+    console.log("Upcoming events");
+    this.props.navigation.navigate('UpcomingEvents')
+  }
 
-          <View
-            style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-            <MonoText>screens/HomeScreen.js</MonoText>
+  winningPercentage = () => {
+    //new users will have 0 games played, which will result in Nan (not a number) as you can't devide by 0. in this case we will just return 0
+    const percentage = (this.props.user.statistics.gameWins/this.props.user.statistics.gamesParticipated)*100;
+    const roundPercentage = percentage.toFixed();
+    return isNaN(roundPercentage) ? 0 : roundPercentage;
+  }
+
+  render(){
+    //waiting for props to load, or it cant be rendered ;)
+    let loadedProps = this.props.user.statistics;
+    return (
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.contentContainer}>
+
+          <View style={styles.welcomeContainer}>
+            <Image
+              source={require('../assets/images/aclo-logo.jpg')}
+              style={styles.welcomeImage}
+            />
           </View>
 
-          <Text style={styles.getStartedText}>
-            Change this text and your app will automatically reload.
-          </Text>
-        </View>
+          <View style={styles.nameBar}>
+            <Text style={styles.profileText}>{this.props.user.name}</Text>
+          </View>
 
-        <View style={styles.helpContainer}>
-          <TouchableOpacity onPress={handleHelpPress} style={styles.helpLink}>
-            <Text style={styles.helpLinkText}>
-              Help, it didn’t automatically reload!
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          <View style={styles.statistics}>
+              { loadedProps ? <Text style={styles.statisticsText} >Events played: {this.props.user.statistics.eventsParticipated}</Text> : <Text style={styles.profileText}> ...Loading</Text> }
+              { loadedProps ? <Text style={styles.statisticsText} >Events won: {this.props.user.statistics.eventWins}</Text> : null }
+              { loadedProps ? <Text style={styles.statisticsText} >Matches played: {this.props.user.statistics.gamesParticipated}</Text> : null }
+              { loadedProps ? <Text style={styles.statisticsText} >Matches won: {this.props.user.statistics.gameWins}</Text> : null }
+              { loadedProps ? <Text style={styles.statisticsText} >Winning percentage: {this.winningPercentage()}%</Text> : null }
+          </View>
 
-      <View style={styles.tabBarInfoContainer}>
-        <Text style={styles.tabBarInfoText}>
-          This is a tab bar. You can edit it in:
-        </Text>
+          <View style={styles.buttonView}>
+            <View style={styles.button}>
+              <Button color='#e7741b' title='Achievements' onPress={this.handleAchievements}/>
+            </View>
 
-        <View
-          style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-          <MonoText style={styles.codeHighlightText}>
-            navigation/MainTabNavigator.js
-          </MonoText>
-        </View>
+            <View style={styles.button}>
+              <Button color='#e7741b' title='My previous events' onPress={this.handlePreviousEvents}/>
+            </View>
+
+            <View style={styles.button}>
+              <Button color='#e7741b' title='My upcoming events'  onPress={this.handleUpcomingEvents}/>
+            </View>
+
+            <View style={styles.button}>
+              <Button color='#e7741b' title='Logout' onPress={this.handleSignout} />
+            </View>
+          </View>
+
+        </ScrollView>
       </View>
-    </View>
-  );
+    );
+  }
+  
 }
 
 HomeScreen.navigationOptions = {
   header: null,
 };
 
-function DevelopmentModeNotice() {
-  if (__DEV__) {
-    const learnMoreButton = (
-      <Text onPress={handleLearnMorePress} style={styles.helpLinkText}>
-        Learn more
-      </Text>
-    );
-
-    return (
-      <Text style={styles.developmentModeText}>
-        Development mode is enabled: your app will be slower but you can use
-        useful development tools. {learnMoreButton}
-      </Text>
-    );
-  } else {
-    return (
-      <Text style={styles.developmentModeText}>
-        You are not in development mode: your app will run at full speed.
-      </Text>
-    );
-  }
+const mapStateToProps = state => {
+    return {
+        user: state.user
+    }
 }
 
-function handleLearnMorePress() {
-  WebBrowser.openBrowserAsync(
-    'https://docs.expo.io/versions/latest/workflow/development-mode/'
-  );
-}
-
-function handleHelpPress() {
-  WebBrowser.openBrowserAsync(
-    'https://docs.expo.io/versions/latest/workflow/up-and-running/#cant-see-your-changes'
-  );
-}
+export default connect(mapStateToProps)(HomeScreen)
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
+    backgroundColor: '#000',
   },
   contentContainer: {
-    paddingTop: 30,
+    paddingTop: 3,
   },
   welcomeContainer: {
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 20,
   },
   welcomeImage: {
-    width: 100,
-    height: 80,
+    width: 250,
+    height: 150,
     resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
   },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
+  profileText: {
+    color: '#fff',
+    fontSize: 30,
+    textAlign: 'center'
   },
-  homeScreenFilename: {
-    marginVertical: 7,
+  button: {
+    marginHorizontal: 20,
+    marginVertical: 5,
+    justifyContent: 'flex-end',
   },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
+  buttonView: {
+    justifyContent: 'flex-end',
+    flex: 1,
+    marginVertical: 5,
   },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
+  nameBar: {
+    backgroundColor: '#e7741b',
+    marginHorizontal: 20,
+    marginBottom: 10,
   },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
+  statistics: {
+    flex: 1,
+    backgroundColor: '#e7741b',
+    marginHorizontal: 20,
+    paddingVertical: 10,
   },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
+  statisticsText: {
+    color: '#fff',
+    fontSize: 22,
+    textAlign: 'center'
   },
 });
